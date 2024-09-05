@@ -30,7 +30,7 @@ def validUTF8(data):
             if not (byte & mask1 and not (byte & mask2)):
                 return False
 
-        # Decrease the number of bytes remaining for the current UTF-8 character
+        # Decrease the number of bytes remaining for the current UTF-8 char
         n_bytes -= 1
 
     # If we finished processing all bytes, n_bytes should be 0
