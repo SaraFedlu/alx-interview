@@ -1,47 +1,37 @@
 #!/usr/bin/python3
+"""
+Determines if given data represents valid utf8.
+"""
+
+
 def validUTF8(data):
     """
-    Determines if a given data set represents a valid UTF-8 encoding.
-    Args:
-        data (list): A list of integers representing bytes
-    Returns:
-        bool: True if the data is a valid UTF-8 encoding, else False.
+    Return true if data is valid utf with chars 1-4 bytes long, data set can
+    contain multiple chars data will be represented by a list of ints, each
+    int reps 1 byteof data, only need to handle the 8 least significant bits
+    of each integer.
     """
-    n_bytes = 0
 
-    # Masks to check leading bits in a byte
-    mask1 = 1 << 7  # 10000000
-    mask2 = 1 << 6  # 01000000
+    num_bytes = 0
 
-    for byte in data:
-        # Check if the integer is within the valid byte range
-        if byte > 255 or byte < 0:
-            return False
+    for number in data:
+        binary_result = format(number, '#010b')[-8:]
 
-        # Only use the 8 least significant bits of the integer
-        byte &= 0xFF
+        if num_bytes == 0:
+            for bit in binary_result:
+                if bit == '0':
+                    break
+                num_bytes += 1
 
-        if n_bytes == 0:
-            # Determine the number of bytes for the current UTF-8 character
-            mask = 1 << 7
-            while mask & byte:
-                n_bytes += 1
-                mask >>= 1
-
-            # If it's a 1-byte character (ASCII), continue
-            if n_bytes == 0:
+            if num_bytes == 0:
                 continue
 
-            # UTF-8 characters can be 2-4 bytes long, otherwise it's invalid
-            if n_bytes == 1 or n_bytes > 4:
+            if num_bytes == 1 or num_bytes > 4:
                 return False
         else:
-            # The following bytes must start with '10'
-            if not (byte & mask1 and not (byte & mask2)):
+            if not (binary_result[0] == '1' and binary_result[1] == '0'):
                 return False
 
-        # Decrease the number of bytes remaining for the current UTF-8 char
-        n_bytes -= 1
+        num_bytes -= 1
 
-    # If we finished processing all bytes, n_bytes should be 0
-    return n_bytes == 0
+    return num_bytes == 0
