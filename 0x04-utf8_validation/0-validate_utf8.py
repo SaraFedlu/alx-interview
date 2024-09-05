@@ -2,7 +2,6 @@
 def validUTF8(data):
     """
     Determine if a given data set represents a valid UTF-8 encoding.
-    
     :param data: List of integers representing bytes.
     :return: True if data is a valid UTF-8 encoding, False otherwise.
     """
