@@ -1,49 +1,37 @@
 #!/usr/bin/python3
-
-
 def validUTF8(data):
-    """
-    Determine if a given data set represents a valid UTF-8 encoding.
-    :param data: List of integers representing bytes.
-    :return: True if data is a valid UTF-8 encoding, False otherwise.
-    """
-    # Number of bytes remaining in the current UTF-8 character
-    bytes_to_process = 0
+    """Determines if a given data set represents a valid UTF-8 encoding."""
+    n_bytes = 0
 
-    # Masks to identify the pattern of bytes in UTF-8 encoding
-    MASK_1_BYTE = 0b10000000  # Mask for 1 byte (0xxxxxxx)
-    MASK_2_BYTE = 0b11100000  # Mask for 2 bytes (110xxxxx)
-    MASK_3_BYTE = 0b11110000  # Mask for 3 bytes (1110xxxx)
-    MASK_4_BYTE = 0b11111000  # Mask for 4 bytes (11110xxx)
-    CONTINUATION_MASK = 0b11000000  # Mask for continuation byte (10xxxxxx)
-    CONTINUATION_VALUE = 0b10000000  # Value to compare for continuation byte
+    # Masks to check leading bits in a byte
+    mask1 = 1 << 7  # 10000000
+    mask2 = 1 << 6  # 01000000
 
     for byte in data:
-        # Ensure we only deal with the least significant 8 bits
+        # Only use the 8 least significant bits of the integer
         byte &= 0xFF
 
-        if bytes_to_process == 0:
-            # Determine how many bytes this UTF-8 character spans
-            if (byte & MASK_1_BYTE) == 0:
-                # 1-byte character (ASCII, 0xxxxxxx)
+        if n_bytes == 0:
+            # Determine the number of bytes for the current UTF-8 character
+            mask = 1 << 7
+            while mask & byte:
+                n_bytes += 1
+                mask >>= 1
+
+            # If it's a 1-byte character (ASCII), continue
+            if n_bytes == 0:
                 continue
-            elif (byte & MASK_2_BYTE) == 0b11000000:
-                # 2-byte character (110xxxxx)
-                bytes_to_process = 1
-            elif (byte & MASK_3_BYTE) == 0b11100000:
-                # 3-byte character (1110xxxx)
-                bytes_to_process = 2
-            elif (byte & MASK_4_BYTE) == 0b11110000:
-                # 4-byte character (11110xxx)
-                bytes_to_process = 3
-            else:
-                # Invalid first byte
+
+            # UTF-8 characters can be 2-4 bytes long, otherwise it's invalid
+            if n_bytes == 1 or n_bytes > 4:
                 return False
         else:
-            # Check if it's a valid continuation byte (10xxxxxx)
-            if (byte & CONTINUATION_MASK) != CONTINUATION_VALUE:
+            # The following bytes must start with '10'
+            if not (byte & mask1 and not (byte & mask2)):
                 return False
-            bytes_to_process -= 1
 
-    # If we have processed all bytes correctly, bytes_to_process should be 0
-    return bytes_to_process == 0
+        # Decrease the number of bytes remaining for the current UTF-8 character
+        n_bytes -= 1
+
+    # If we finished processing all bytes, n_bytes should be 0
+    return n_bytes == 0
