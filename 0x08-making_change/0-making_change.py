@@ -1,38 +1,45 @@
 #!/usr/bin/python3
 """
-Make Change - Dynamic Programming Solution
+Make Change - Optimized using BFS
 """
 
 
 def makeChange(coins, total):
     """
-    Determines the fewest number of coins needed to meet a given total.
+    Determines the fewest number of coins needed to meet a given total
 
     Args:
         coins (list): A list of integers representing coin denominations.
         total (int): The total amount to be formed using the fewest coins.
 
     Returns:
-        int: The fewest number of coins needed,
-        or -1 if the total cannot be met.
+        int: The fewest number of coins needed, or -1
     """
     if total <= 0:
         return 0
 
-    # Sort the coins in descending order to prioritize larger coins
+    # Use BFS to search for the fewest number of coins
+    queue = [(0, 0)]  # (current_total, number_of_coins)
+    visited = set()  # To avoid re-processing the same total
+
+    # Sort coins to prioritize smaller ones
     coins.sort(reverse=True)
 
-    # Initialize dp array with 'infinity' for all values except dp[0]
-    dp = [float('inf')] * (total + 1)
-    dp[0] = 0
+    while queue:
+        current_total, num_coins = queue.pop(0)
 
-    # For each coin, update dp values
-    for coin in coins:
-        for amount in range(coin, total + 1):
-            dp[amount] = min(dp[amount], dp[amount - coin] + 1)
-            # Early exit if we've already computed a solution for `total`
-            if dp[total] != float('inf'):
-                return dp[total]
+        # Try all coins and explore new totals
+        for coin in coins:
+            new_total = current_total + coin
 
-    # If dp[total] is still 'infinity', return -1 (total can't be met)
-    return dp[total] if dp[total] != float('inf') else -1
+            # If we've exactly met the total, return the number of coins
+            if new_total == total:
+                return num_coins + 1
+
+            # If the new total is less than the desired total
+            if new_total < total and new_total not in visited:
+                visited.add(new_total)
+                queue.append((new_total, num_coins + 1))
+
+    # If we exit the loop, it means we couldn't find a combination
+    return -1
